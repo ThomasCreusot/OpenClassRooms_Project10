@@ -16,15 +16,38 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from rest_framework import routers
-from IssueTracking_app.views import ProjectViewset
+# before https://pypi.org/project/drf-nested-routers/
+# from rest_framework import routers
+from rest_framework_nested import routers
 
+from IssueTracking_app.views import ProjectViewset, IssueViewset, CommentViewset, ContributorsViewset
 import authentication_app.views
 
+
+# nous déclarons une url basée sur le mot clé ‘projects’ et notre view; cela 
+# afin que l’url générée soit celle que nous souhaitons ‘/api/projects/’
+# 2 arguments : prefix (projects) et viewset class ProjectViewset ; forcément VIEW sous forme de 
+# CLASS 
+# paramètre basename  permet de retrouver l’URL complète avec la fonction redirect ; utile pour les
+# tests
 router = routers.SimpleRouter()
-# nous déclarons une url basée sur le mot clé ‘project’ et notre view
-# afin que l’url générée soit celle que nous souhaitons ‘/api/project/’
-router.register('project', ProjectViewset, basename='project') #paramètre basename  permet de retrouver l’URL complète avec la fonction redirect ; utile pour les tests
+router.register('projects', ProjectViewset, basename='projects') 
+
+#https://pypi.org/project/drf-nested-routers/
+#ici je suppose que je fais le lien avec un autre rooter, celui de projects ; à l'air de fonctionner
+projects_issues_router = routers.NestedSimpleRouter(router, 'projects', lookup='project')
+projects_issues_router.register('issues', IssueViewset, basename='project-issues')
+# 'basename' is optional. Needed only if the same viewset is registered more than once
+# Official DRF docs on this option: http://www.django-rest-framework.org/api-guide/routers/
+
+
+projects_issues_comments_router = routers.NestedSimpleRouter(projects_issues_router, 'issues', lookup='issue')
+projects_issues_comments_router.register('comments', CommentViewset, basename='project-issue-comments')
+
+
+projects_contributors_router = routers.NestedSimpleRouter(router, 'projects', lookup='project')
+projects_contributors_router.register('contributors', ContributorsViewset, basename='project-contributors')
+
 
 
 urlpatterns = [
@@ -37,6 +60,10 @@ urlpatterns = [
 
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(router.urls)),
+    path('api/', include(projects_issues_router.urls)),
+    path('api/', include(projects_issues_comments_router.urls)),
 
+    path('api/', include(projects_contributors_router.urls)),
 
 ]
+
