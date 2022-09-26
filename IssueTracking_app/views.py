@@ -4,10 +4,10 @@ from rest_framework.viewsets import ModelViewSet
 
  
 from IssueTracking_app.models import Project, Issue, Comment, Contributor
-#from authentication_app.models import User
+from authentication_app.models import User
 
 #from IssueTracking_app.serializers import ProjectSerializer
-from IssueTracking_app.serializers import ProjectListSerializer, ProjectDetailSerializer, IssueSerializer, CommentSerializer, ContributorSerializer
+from IssueTracking_app.serializers import ProjectListSerializer, ProjectDetailSerializer, IssueSerializer, CommentSerializer, ContributorSerializer, ContributorUserSerializer
 
 
 #original version: no difference between list and detail
@@ -58,8 +58,18 @@ class CommentViewset(ModelViewSet):
 
 class ContributorsViewset(ModelViewSet):
 
+    #  Displays contributors objects : a relation betwen a project and a user
     serializer_class = ContributorSerializer 
 
     def get_queryset(self):
         return Contributor.objects.filter(project_id=self.kwargs['project_pk'])
 
+
+    #  Displays users who got an ID which is in the list of contributors objects
+    #serializer_class = ContributorUserSerializer 
+
+    #def get_queryset(self):
+    #    id_of_project_in_url = self.kwargs['project_pk']
+    #    contributors_queryset = Contributor.objects.filter(project_id=id_of_project_in_url) 
+    #    contributors_user_queryset = User.objects.filter(id__in=contributors_queryset) 
+    #    return contributors_user_queryset
