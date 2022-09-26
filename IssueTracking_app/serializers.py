@@ -1,5 +1,7 @@
+
 from rest_framework.serializers import ModelSerializer
- 
+from rest_framework import serializers
+
 from IssueTracking_app.models import Project, Issue, Comment, Contributor
 from authentication_app.models import User
  
@@ -15,10 +17,27 @@ from authentication_app.models import User
 class ProjectListSerializer(ModelSerializer):
     """Serializes Project objects"""
 
+    #https://www.django-rest-framework.org/api-guide/fields/#core-arguments
+    #Initial : A value that should be used for pre-populating the value of HTML form fields. You may pass a callable to it, just as you may do with any regular Django Field:
+
+
+    # ESSAIS pour valeur par défaut sur Author user id ; résolu en surchargeant la méthode save() 
+    #author_user_id = serializers.CharField(initial=serializers.CurrentUserDefault())
+    #author_user_id = serializers.CharField(initial=serializers.CurrentUserDefault()) # utiliser la classe d'authentification : permet de définir l’utilisateur à l’origine de la requête. C’est elle qui attache le user  à la requête avec l’attribut request.user  si l'utilisateur a prouvé son authentification (page 47/57 cours 010.1)
+    #author_user_id = serializers.CharField(initial=serializers.CurrentUserDefault())
+    author_user_id = serializers.CharField(initial="Current user by default by overwriting  save() method")
+
     class Meta:
         model = Project
         #fields = ['id', 'title', 'description', 'type', 'author_user_id', 'contributors']
         fields = ['id', 'title', 'description', 'type', 'author_user_id']
+
+    def save(self):
+        #self.author_user_id = self.context['request'].user
+        #print("author_user_id saved as self.context['request'].user", self.context['request'].user)
+        #Overwriting save method with defining the author_user_id
+        super().save(author_user_id = self.context['request'].user)
+
 
 # http://127.0.0.1:8000/api/projects/2/
 # 'contributors' --> list of USERS id, not 'contributors as relation between project and User' : NICE !
