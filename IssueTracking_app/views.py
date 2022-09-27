@@ -9,8 +9,9 @@ from authentication_app.models import User
 #from IssueTracking_app.serializers import ProjectSerializer
 from IssueTracking_app.serializers import ProjectListSerializer, ProjectDetailSerializer, IssueSerializer, CommentSerializer, ContributorSerializer, ContributorUserSerializer
 
-from rest_framework.permissions import IsAuthenticated
-from IssueTracking_app.permissions import ProjectCollaboratorssPermission
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from IssueTracking_app.permissions import ProjectsPermission, IssuesPermission, CommentPermission, ContributorsPermission
+
 
 #original version: no difference between list and detail
 #class ProjectViewset(ModelViewSet):
@@ -31,7 +32,8 @@ class ProjectViewset(ModelViewSet):
     serializer_class = ProjectListSerializer 
     detail_serializer_class = ProjectDetailSerializer 
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ProjectsPermission]
+
 
     def get_queryset(self):
         #note that with 
@@ -52,17 +54,18 @@ class ProjectViewset(ModelViewSet):
 
 
 
+
+
+
 class IssueViewset(ModelViewSet):
     """API endpoint that allows Issues to be CRUD."""
 
     serializer_class = IssueSerializer 
 
-    permission_classes = [ProjectCollaboratorssPermission]
+    permission_classes = [IssuesPermission]
 
     def get_queryset(self):
         return Issue.objects.filter(project_id=self.kwargs['project_pk'])
-
-
 
 
 class CommentViewset(ModelViewSet):
@@ -70,7 +73,7 @@ class CommentViewset(ModelViewSet):
 
     serializer_class = CommentSerializer 
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CommentPermission]
 
     def get_queryset(self):
         return Comment.objects.filter(issue_id=self.kwargs['issue_pk'])
@@ -82,7 +85,7 @@ class ContributorsViewset(ModelViewSet):
     #  Displays contributors objects : a relation betwen a project and a user
     serializer_class = ContributorSerializer 
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [ContributorsPermission]
 
     def get_queryset(self):
         return Contributor.objects.filter(project_id=self.kwargs['project_pk'])
