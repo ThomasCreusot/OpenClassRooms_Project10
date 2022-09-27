@@ -23,6 +23,7 @@ from rest_framework_nested import routers
 from IssueTracking_app.views import ProjectViewset, IssueViewset, CommentViewset, ContributorsViewset
 import authentication_app.views
 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # nous déclarons une url basée sur le mot clé ‘projects’ et notre view; cela 
 # afin que l’url générée soit celle que nous souhaitons ‘/api/projects/’
@@ -59,6 +60,11 @@ urlpatterns = [
 
 
     path('api-auth/', include('rest_framework.urls')),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+
     path('api/', include(router.urls)),
     path('api/', include(projects_issues_router.urls)),
     path('api/', include(projects_issues_comments_router.urls)),

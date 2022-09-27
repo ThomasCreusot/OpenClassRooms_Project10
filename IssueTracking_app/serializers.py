@@ -25,7 +25,7 @@ class ProjectListSerializer(ModelSerializer):
     #author_user_id = serializers.CharField(initial=serializers.CurrentUserDefault())
     #author_user_id = serializers.CharField(initial=serializers.CurrentUserDefault()) # utiliser la classe d'authentification : permet de définir l’utilisateur à l’origine de la requête. C’est elle qui attache le user  à la requête avec l’attribut request.user  si l'utilisateur a prouvé son authentification (page 47/57 cours 010.1)
     #author_user_id = serializers.CharField(initial=serializers.CurrentUserDefault())
-    author_user_id = serializers.CharField(initial="Current user by default by overwriting  save() method")
+    author_user_id = serializers.CharField(initial="Current user by default by overwriting  save() method ; replace 'Charfield' by 'HiddenField' and 'initial' by 'default' in the present line to hide the field")
 
     class Meta:
         model = Project
@@ -52,9 +52,16 @@ class ProjectDetailSerializer(ModelSerializer):
 class IssueSerializer(ModelSerializer):
     """Serializes Issue objects"""
 
+    author_user_id = serializers.CharField(initial="Current user by default by overwriting  save() method ; replace 'Charfield' by 'HiddenField' and 'initial' by 'default' in the present line to hide the field")
+    assignee_user_id = serializers.CharField(initial="Current user by default by overwriting  save() method ; replace 'Charfield' by 'HiddenField' and 'initial' by 'default' in the present line to hide the field")
+
     class Meta:
         model = Issue
         fields = ['id', 'title', 'desc', 'tag', 'priority', 'project_id', 'status', 'author_user_id', 'assignee_user_id', 'created_time']
+
+    def save(self):
+        super().save(author_user_id = self.context['request'].user, assignee_user_id = self.context['request'].user)
+
 
 
 class CommentSerializer(ModelSerializer):

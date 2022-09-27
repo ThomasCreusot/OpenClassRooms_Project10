@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'authentication_app',
     'IssueTracking_app',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication_app.User'
 
 LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/api/project/'  # le mieux serait d'attribuer un nom à l'url d'accueil
+
+#utilise la classe d'authentification fournie par jwt
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
+}
