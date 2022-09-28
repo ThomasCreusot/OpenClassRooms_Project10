@@ -46,6 +46,26 @@ def give_permission_to_author_of_a_project(view, request, view_kwarg_project):
     return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
 
 
+def give_permission_to_author_of_an_issue(view, request, view_kwarg_issue):
+    """Returns True if the authentified User is the author of the given project"""
+
+    id_of_issue_in_url = view.kwargs[view_kwarg_issue]
+    issue_object = get_object_or_404(Issue, pk=id_of_issue_in_url)
+
+    return bool(request.user and request.user.is_authenticated and issue_object.author_user_id == request.user)
+
+
+
+
+def give_permission_to_author_of_a_comment(view, request, view_kwarg_comment):
+    """Returns True if the authentified User is the author of the given project"""
+
+    id_of_comment_in_url = view.kwargs[view_kwarg_comment]
+    comment_object = get_object_or_404(Comment, pk=id_of_comment_in_url)
+
+    return bool(request.user and request.user.is_authenticated and comment_object.author_user_id == request.user)
+
+
 
 class ProjectsPermission(BasePermission):
     """Gives permission :
@@ -65,11 +85,11 @@ class ProjectsPermission(BasePermission):
     -ask to delete a given Project : project author only ; DELETE in has_object_permission
     """
 
-    message = 'write an adequate message here : permissions.py aaa'
+    message = 'write an adequate message here : permissions.py ; ProjectsPermission'
 
 
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:        
+        if request.method in permissions.SAFE_METHODS:
             return bool(request.user and request.user.is_authenticated)
         elif request.method == "POST":
             return bool(request.user and request.user.is_authenticated)
@@ -78,31 +98,104 @@ class ProjectsPermission(BasePermission):
 
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:        
+        if request.method in permissions.SAFE_METHODS:
             return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
         elif request.method == "POST":
-            return False
+            return False  # "Method \"POST\" not allowed."
         elif request.method == "PUT" or request.method == "DELETE":
             return give_permission_to_author_of_a_project(view, request, view_kwarg_project='pk')
 
 
 
-class CommentPermission(BasePermission):
-    """Gives permission to ... of a project (the one in the url) to access ... and ... """
 
-    message = 'write an adequate message here : permissions.py'
+
+
+
+
+
+
+class IssuesPermission(BasePermission):
+    """Gives permission :
+    -ask to view all Issues of a project          : project contributors only ; GET in has_permission
+    -ask to create all Issues of a project        : project contributors only ; POST in has_permission
+
+    -ask to update all all Issues of a project    : PUT on http://127.0.0.1:8000/api/projects/23/issues : does not exist ; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+        --> Issue author only
+    -ask to delete all all Issues of a project    : DELETE on http://127.0.0.1:8000/api/projects/23/issues : does not exist; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+        --> Issue author only
+
+    -ask to view a given Issue of a given Project   : project contributors only ; GET in has_permission
+    -ask to create a given Issue of a given Project : "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
+    -ask to update a given Issue of a given Project : Issue author only ; PUT in has_object_permission
+    -ask to delete a given Issue of a given Project : Issue author only ; DELETE in has_object_permission
+    """
+
+    message = 'write an adequate message here : permissions.py ; IssuesPermission'
+
 
     def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS or request.method == "POST":
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_an_issue(view, request, view_kwarg_issue='pk')
 
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
-        if request.method in permissions.SAFE_METHODS:        
 
-            return bool(request.user and request.user.is_authenticated and True )
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "POST":
+            return False  # "Method \"POST\" not allowed."
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_an_issue(view, request, view_kwarg_issue='pk')
 
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
-        else:
 
-            return bool(request.user and request.user.is_authenticated and True )
+
+class CommentPermission(BasePermission):
+    """Gives permission :
+    -ask to view all Comments of an Issue of a project          : project contributors only ; GET in has_permission
+    -ask to create all Comments of an Issue of a project        : project contributors only ; POST in has_permission
+
+    -ask to update all Comments of an Issue of a project    : PUT on http://127.0.0.1:8000/api/projects/23/issues : does not exist ; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+        --> Comment author only
+    -ask to delete all Comments of an Issue of a project    : DELETE on http://127.0.0.1:8000/api/projects/23/issues : does not exist; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+        --> Comment author only
+
+    -ask to view a given Comments of an Issue of a given Project   : project contributors only ; GET in has_permission
+    -ask to create a given Comments of an Issue of a given Project : "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
+    -ask to update a given Comments of an Issue of a given Project : Comment author only ; PUT in has_object_permission
+    -ask to delete a given Comments of an Issue of a given Project : Comment author only ; DELETE in has_object_permission
+    """
+
+    message = 'write an adequate message here : permissions.py ; CommentPermission'
+
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS or request.method == "POST":
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_a_comment(view, request, view_kwarg_comment='pk')
+
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "POST":
+            return False  # "Method \"POST\" not allowed."
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_a_comment(view, request, view_kwarg_comment='pk')
+
+
+
+
+
 
 
 class ContributorsPermission(BasePermission):
@@ -126,48 +219,3 @@ class ContributorsPermission(BasePermission):
             return bool(request.user and request.user.is_authenticated and True )
 
 
-class IssuesPermission(BasePermission):
-    """Gives permission to collaborators of a project (the one in the url) to access issues and ... """
-
-    message = 'You do not have permission to perform this action as you are not a ... of the project'
-
-    def has_permission(self, request, view):
-
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
-        if request.method in permissions.SAFE_METHODS:
-        
-
-
-            #SOLUTION A
-            #id_of_project_in_url = view.kwargs['project_pk']
-
-            # queryset of contributors objects, which got a project_id == to the id_of_project_in_url
-            #contributors_queryset = Contributor.objects.filter(project_id=id_of_project_in_url) 
-
-            # we got a queryset of contributors which are relations project-user
-            # autorisation if False by defaul and become True only if a contributor object (of our
-            # queryset) has the id of the authenticated user in its user_id field
-
-            #autorisation = False
-
-            #for contributor in contributors_queryset:
-            #    print("contributor.user_id", contributor.user_id)
-            #    print("request.user", request.user)
-            #    if contributor.user_id == request.user:
-            #        autorisation = True
-
-            #SOLUTION B
-            id_of_project_in_url = view.kwargs['project_pk']
-            urlProject_and_RequestUser_contributor = Contributor.objects.filter(
-                Q(project_id=id_of_project_in_url) & Q(user_id=request.user)
-                ) 
-            #print("urlProject_and_RequestUser_contributor", urlProject_and_RequestUser_contributor)
-
-            #SOLUTION A
-            #return bool(request.user and request.user.is_authenticated and autorisation == True)
-            #SOLUTION B : autorisation only if urlProject_and_RequestUser_contributor not empty
-            return bool(request.user and request.user.is_authenticated and urlProject_and_RequestUser_contributor)
-
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
-        else:
-            return(False)
