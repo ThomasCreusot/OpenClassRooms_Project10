@@ -1,70 +1,97 @@
 from rest_framework.permissions import BasePermission
-
-from IssueTracking_app.models import Contributor, Project
-from authentication_app.models import User
-
-from django.db.models import Q
-
 from rest_framework import permissions
 
+from IssueTracking_app.models import Contributor, Project, Issue, Comment 
+from authentication_app.models import User
+
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
-"""Pour s'y retrouver : 
-pour chaque vue j'écris une permission
-pour chaque permission : on surcharge la méthode has_permission
-dans le if ... safemethods : les lecteurs
-dans le else: ceux qui mettent à jour, suppriment
 
-la question : le create ? comment le différencier du update
-avec un if imbriqué : if request.method == "POST"
+"""
+Redaction of a permission for each view
+For each permission : 
+    overwritting the method has_permission
+        the if ... safemethods: corresponds to users who ask to view all objects of a model (e.g. : http://127.0.0.1:8000/api/projects/)
+        the else: corresponds to the users who ask to update/delete all objects of a model (http://127.0.0.1:8000/api/projects/)
+
+    overwritting the method has_permission
+        the if ... safemethods: corresponds to users who ask to view a given object of a model (e.g. : http://127.0.0.1:8000/api/projects/18)
+        the else: corresponds to the users who ask to update/delete a given object of a model (http://127.0.0.1:8000/api/projects/18)
+
+Note: 
+https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
 """
 
+
+def give_access_to_():
+    return True
+
+
+
+
 class ProjectsPermission(BasePermission):
-    """Gives permission 
-    -to all contributors of the project read the project with GET : filter in views. with GET
-    -to anyone to create a project with POST
-    -to project author (only) to update or delete a project with PUT or DELETE
+    """Gives permission :
+    -ask to view all Projects      : all authentificated user can ask to view the projects they are inplied in (see filter in view) ; GET in has_permission
+    -ask to create all Projects    : all authentificated user can ask to create a project ; POST in has_permission
+    -ask to update all Projects    : PUT on http://127.0.0.1:8000/api/projects/ : does not exist ; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+    -ask to delete all Projects    : DELETE on http://127.0.0.1:8000/api/projects/ : does not exist; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+
+
+    -ask to view a given Project   : contributors of a project can ask to view details of the projects ; GET in has_object_permission
+    -ask to create a given Project : "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
+    -ask to update a given Project : project author only ; PUT in has_object_permission
+    -ask to delete a given Project : project author only ; DELETE in has_object_permission
     """
 
-    message = 'write an adequate message here : permissions.py'
+    message = 'write an adequate message here : permissions.py aaa'
+
+    def has_object_permission(self, request, view, obj):
+        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
+        if request.method in permissions.SAFE_METHODS:        
+
+            #here: pk and note project_pk : see the router design
+            id_of_project_in_url = view.kwargs['pk']
+            urlProject_and_RequestUser_contributor = Contributor.objects.filter(
+                Q(project_id=id_of_project_in_url) & Q(user_id=request.user)
+                ) 
+            return bool(request.user and request.user.is_authenticated and urlProject_and_RequestUser_contributor)
+
+
+        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
+        else:
+            if request.method == "POST":
+                return False
+
+            else: # : request.method == "PUT" or request.method == "DELETE":
+                #Code in both has_permission and has_object_permission
+                id_of_project_in_url = view.kwargs['pk']
+                project_object = get_object_or_404(Project, pk=id_of_project_in_url)
+                print(project_object.author_user_id == request.user)
+                return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
+
 
     def has_permission(self, request, view):
-
         # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
-        # to all authentificated user to ask a list of the projects they are inplied in (see filter in view) ; with GET
         if request.method in permissions.SAFE_METHODS:        
             return bool(request.user and request.user.is_authenticated)
 
         # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
         else:
-            # to all authentificated user to ask to create a project with POST
             if request.method == "POST":
                 return bool(request.user and request.user.is_authenticated)
 
-            # to all authentificated user to ask to create a project with POST
             else: # : request.method == "PUT" or request.method == "DELETE":
-                print("test PUT OR DELETE")
-
-
-                #reprendre ici, récup l'author_user_id du projet et le comparer à l'id de l'utilisateur connecté
-                #si correspond, on autorise la modif et la suppression, sinon on aurotise pas.
-
-
                 #here: pk and note project_pk : see the router design
+                #Code in both has_permission and has_object_permission
                 id_of_project_in_url = view.kwargs['pk']
-                print("id_of_project_in_url", id_of_project_in_url)  # 19
                 project_object = get_object_or_404(Project, pk=id_of_project_in_url)
-                print("project_object", project_object)
-                print("project_object.author_user_id", project_object.author_user_id)
-                #REPRENDRE ICI : pour l'instant ca marche mais lorsque j'active les lignes ci dessous ca ne marche plus, juste une question d'objets et id
-                #project_author = get_object_or_404(User, pk=project_object.author_user_id)
-                #print("project_author", project_author)
-                #print("request.user.id", request.user)
-
-
-                #desactivation pour tests
-                #return bool(request.user and request.user.is_authenticated and project_author == request.user)
-                return bool(request.user and request.user.is_authenticated )
+                print(project_object.author_user_id == request.user)
+                return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
 
 
 
