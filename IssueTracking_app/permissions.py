@@ -24,9 +24,26 @@ https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET
 """
 
 
-def give_access_to_():
-    return True
+def give_permission_to_contributors_of_a_project(view, request, view_kwarg_project):
+    """Returns True if the authentified User is a collaborator of the given project"""
+    #view_kwarg_project : pk or project_pk, see router design
 
+    id_of_project_in_url = view.kwargs[view_kwarg_project]
+    urlProject_and_RequestUser_contributor = Contributor.objects.filter(
+        Q(project_id=id_of_project_in_url) & Q(user_id=request.user)
+        ) 
+
+    return bool(request.user and request.user.is_authenticated and urlProject_and_RequestUser_contributor)
+
+
+def give_permission_to_author_of_a_project(view, request, view_kwarg_project):
+    """Returns True if the authentified User is the author of the given project"""
+    #view_kwarg_project : pk or project_pk, see router design
+
+    id_of_project_in_url = view.kwargs[view_kwarg_project]
+    project_object = get_object_or_404(Project, pk=id_of_project_in_url)
+
+    return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
 
 
 
@@ -50,48 +67,23 @@ class ProjectsPermission(BasePermission):
 
     message = 'write an adequate message here : permissions.py aaa'
 
-    def has_object_permission(self, request, view, obj):
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
-        if request.method in permissions.SAFE_METHODS:        
-
-            #here: pk and note project_pk : see the router design
-            id_of_project_in_url = view.kwargs['pk']
-            urlProject_and_RequestUser_contributor = Contributor.objects.filter(
-                Q(project_id=id_of_project_in_url) & Q(user_id=request.user)
-                ) 
-            return bool(request.user and request.user.is_authenticated and urlProject_and_RequestUser_contributor)
-
-
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
-        else:
-            if request.method == "POST":
-                return False
-
-            else: # : request.method == "PUT" or request.method == "DELETE":
-                #Code in both has_permission and has_object_permission
-                id_of_project_in_url = view.kwargs['pk']
-                project_object = get_object_or_404(Project, pk=id_of_project_in_url)
-                print(project_object.author_user_id == request.user)
-                return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
-
 
     def has_permission(self, request, view):
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
         if request.method in permissions.SAFE_METHODS:        
             return bool(request.user and request.user.is_authenticated)
+        elif request.method == "POST":
+            return bool(request.user and request.user.is_authenticated)
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_a_project(view, request, view_kwarg_project='pk')
 
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
-        else:
-            if request.method == "POST":
-                return bool(request.user and request.user.is_authenticated)
 
-            else: # : request.method == "PUT" or request.method == "DELETE":
-                #here: pk and note project_pk : see the router design
-                #Code in both has_permission and has_object_permission
-                id_of_project_in_url = view.kwargs['pk']
-                project_object = get_object_or_404(Project, pk=id_of_project_in_url)
-                print(project_object.author_user_id == request.user)
-                return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:        
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
+        elif request.method == "POST":
+            return False
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_a_project(view, request, view_kwarg_project='pk')
 
 
 
