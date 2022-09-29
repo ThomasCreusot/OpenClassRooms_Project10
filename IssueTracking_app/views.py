@@ -7,10 +7,12 @@ from IssueTracking_app.models import Project, Issue, Comment, Contributor
 from authentication_app.models import User
 
 #from IssueTracking_app.serializers import ProjectSerializer
-from IssueTracking_app.serializers import ProjectListSerializer, ProjectDetailSerializer, IssueSerializer, CommentSerializer, ContributorSerializer, ContributorUserSerializer
+from IssueTracking_app.serializers import ProjectListSerializer, ProjectDetailSerializer, IssueSerializer, CommentSerializer, ContributorSerializer
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from IssueTracking_app.permissions import ProjectsPermission, IssuesPermission, CommentPermission, ContributorsPermission
+
+from django.db.models import Q
 
 
 #original version: no difference between list and detail
@@ -43,7 +45,17 @@ class ProjectViewset(ModelViewSet):
         # return Project.objects.all()
         # http://127.0.0.1:8000/api/projects/1/ is  accessible for an Anonym user
 
-        return Project.objects.filter(author_user_id = self.request.user.id)
+        #first version : user access project for which he/she is author 
+        # return Project.objects.filter(author_user_id = self.request.user.id)
+
+        #second version : user access project for which he/she is author or contributor
+        projects_in_which_user_is_author_or_contributor = Project.objects.filter(
+            Q(author_user_id = self.request.user.id) | Q(contributors = self.request.user.id)
+        )
+
+        return projects_in_which_user_is_author_or_contributor
+        
+
 
     def get_serializer_class(self):
     # cours OC : Si l'action demandée est retrieve nous retournons le serializer de détail

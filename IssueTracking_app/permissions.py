@@ -79,7 +79,7 @@ class ProjectsPermission(BasePermission):
         (https://www.django-rest-framework.org/api-guide/permissions/)
 
 
-    -ask to view a given Project   : contributors of a project can ask to view details of the projects ; GET in has_object_permission
+    -ask to view a given Project   : contributors of a project AND project_author can ask to view details of the projects ; GET in has_object_permission
     -ask to create a given Project : "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
     -ask to update a given Project : project author only ; PUT in has_object_permission
     -ask to delete a given Project : project author only ; DELETE in has_object_permission
@@ -99,7 +99,16 @@ class ProjectsPermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
-            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
+            contributor = give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
+            author = give_permission_to_author_of_a_project(view, request, view_kwarg_project='pk')
+            permission = contributor or author
+            print(contributor)
+            print(author)
+            print(permission)
+            return permission
+
+            # only contributors, old version
+            # return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
         elif request.method == "POST":
             return False  # "Method \"POST\" not allowed."
         elif request.method == "PUT" or request.method == "DELETE":
@@ -199,23 +208,46 @@ class CommentPermission(BasePermission):
 
 
 class ContributorsPermission(BasePermission):
-    #//!!\\ !!! role is to allow or not access to creation of contributors which are objects linking projects and users
-    # role is not to give or not access to contributors
+    """
+    /!\ role is to allow or not access to creation of contributors which are objects linking projects and users
+     role is not to give or not access to contributors
+    
+    Gives permission :
+    -ask to view all Contributors of a project          : Project contributors only ; GET in has_permission
+    -ask to create all Contributors of a project        : Project author only ; POST in has_permission
 
-    """Gives permission to ... of a project (the one in the url) to access ... and ... """
+    -ask to update all all Contributors of a project    : PUT on http://127.0.0.1:8000/api/projects/23/issues : does not exist ; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+        --> Project author only
+    -ask to delete all all Contributors of a project    : DELETE on http://127.0.0.1:8000/api/projects/23/issues : does not exist; but same code as in has_object_permission, as :
+        "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
+        (https://www.django-rest-framework.org/api-guide/permissions/)
+        --> Project author only
 
-    message = 'write an adequate message here : permissions.py'
+    -ask to view a given Contributor of a given Project   : project contributors only ; GET in has_permission
+    -ask to create a given Contributor of a given Project : "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
+    -ask to update a given Contributor of a given Project : Project author only ; PUT in has_object_permission
+    -ask to delete a given Contributor of a given Project : Project author only ; DELETE in has_object_permission
+    """
+
+    message = 'write an adequate message here : permissions.py ; ContributorsPermission'
+
 
     def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "POST":
+            return give_permission_to_author_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_a_project(view, request, view_kwarg_project='project_pk')
 
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET', 'OPTIONS' or 'HEAD'.
-        if request.method in permissions.SAFE_METHODS:        
 
-            return bool(request.user and request.user.is_authenticated and True )
-
-        # https://www.django-rest-framework.org/api-guide/permissions/ : if method is other than 'GET', 'OPTIONS' or 'HEAD'.
-        else:
-
-            return bool(request.user and request.user.is_authenticated and True )
-
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+        elif request.method == "POST":
+            return False  # "Method \"POST\" not allowed."
+        elif request.method == "PUT" or request.method == "DELETE":
+            return give_permission_to_author_of_a_project(view, request, view_kwarg_project='project_pk')
 
