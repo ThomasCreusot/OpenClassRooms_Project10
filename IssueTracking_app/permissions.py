@@ -46,6 +46,16 @@ def give_permission_to_author_of_a_project(view, request, view_kwarg_project):
     return bool(request.user and request.user.is_authenticated and project_object.author_user_id == request.user)
 
 
+def give_permission_to_contributors_and_author_of_a_project(view, request, view_kwarg_project):
+    """Returns True if the authentified User is the author or a contributor of the given project"""
+
+    contributor = give_permission_to_contributors_of_a_project(view, request, view_kwarg_project)
+    author = give_permission_to_author_of_a_project(view, request, view_kwarg_project)
+    permission = contributor or author
+    return permission
+
+
+
 def give_permission_to_author_of_an_issue(view, request, view_kwarg_issue):
     """Returns True if the authentified User is the author of the given project"""
 
@@ -53,8 +63,6 @@ def give_permission_to_author_of_an_issue(view, request, view_kwarg_issue):
     issue_object = get_object_or_404(Issue, pk=id_of_issue_in_url)
 
     return bool(request.user and request.user.is_authenticated and issue_object.author_user_id == request.user)
-
-
 
 
 def give_permission_to_author_of_a_comment(view, request, view_kwarg_comment):
@@ -85,7 +93,7 @@ class ProjectsPermission(BasePermission):
     -ask to delete a given Project : project author only ; DELETE in has_object_permission
     """
 
-    message = 'write an adequate message here : permissions.py ; ProjectsPermission'
+    message = 'You are not allowed to do this action, see permissions.py / ProjectsPermission'
 
 
     def has_permission(self, request, view):
@@ -99,13 +107,7 @@ class ProjectsPermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
-            contributor = give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
-            author = give_permission_to_author_of_a_project(view, request, view_kwarg_project='pk')
-            permission = contributor or author
-            print(contributor)
-            print(author)
-            print(permission)
-            return permission
+            return give_permission_to_contributors_and_author_of_a_project(view, request, view_kwarg_project='pk')
 
             # only contributors, old version
             # return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='pk')
@@ -143,8 +145,7 @@ class IssuesPermission(BasePermission):
     -ask to delete a given Issue of a given Project : Issue author only ; DELETE in has_object_permission
     """
 
-    message = 'write an adequate message here : permissions.py ; IssuesPermission'
-
+    message = 'You are not allowed to do this action, see permissions.py / IssuesPermission'
 
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS or request.method == "POST":
@@ -183,8 +184,8 @@ class CommentPermission(BasePermission):
     -ask to delete a given Comments of an Issue of a given Project : Comment author only ; DELETE in has_object_permission
     """
 
-    message = 'write an adequate message here : permissions.py ; CommentPermission'
 
+    message = 'You are not allowed to do this action, see permissions.py / CommentPermission'
 
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS or request.method == "POST":
@@ -231,12 +232,11 @@ class ContributorsPermission(BasePermission):
     -ask to delete a given Contributor of a given Project : Project author only ; DELETE in has_object_permission
     """
 
-    message = 'write an adequate message here : permissions.py ; ContributorsPermission'
-
+    message = 'You are not allowed to do this action, see permissions.py / ContributorsPermission'
 
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
-            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+            return give_permission_to_contributors_and_author_of_a_project(view, request, view_kwarg_project='project_pk')
         elif request.method == "POST":
             return give_permission_to_author_of_a_project(view, request, view_kwarg_project='project_pk')
         elif request.method == "PUT" or request.method == "DELETE":
@@ -245,7 +245,9 @@ class ContributorsPermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
-            return give_permission_to_contributors_of_a_project(view, request, view_kwarg_project='project_pk')
+            return give_permission_to_contributors_and_author_of_a_project(view, request, view_kwarg_project='project_pk')
+
+
         elif request.method == "POST":
             return False  # "Method \"POST\" not allowed."
         elif request.method == "PUT" or request.method == "DELETE":

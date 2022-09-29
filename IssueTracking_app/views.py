@@ -53,6 +53,16 @@ class ProjectViewset(ModelViewSet):
             Q(author_user_id = self.request.user.id) | Q(contributors = self.request.user.id)
         )
 
+        print("1")
+        print(Project.objects.filter(Q(author_user_id = self.request.user.id)) )
+        print("2")
+        print(Project.objects.filter(Q(contributors = self.request.user.id)))
+
+        print("3")
+        print(Project.objects.filter(
+            Q(author_user_id = self.request.user.id) | Q(contributors = self.request.user.id)
+        ))
+
         return projects_in_which_user_is_author_or_contributor
         
 
@@ -60,6 +70,7 @@ class ProjectViewset(ModelViewSet):
     def get_serializer_class(self):
     # cours OC : Si l'action demandée est retrieve nous retournons le serializer de détail
         if self.action == 'retrieve':
+            print("a")
             return self.detail_serializer_class
         return super().get_serializer_class() #serializer par defaut
 
