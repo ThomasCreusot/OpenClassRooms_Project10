@@ -53,15 +53,15 @@ class ProjectViewset(ModelViewSet):
             Q(author_user_id = self.request.user.id) | Q(contributors = self.request.user.id)
         )
 
-        print("1")
-        print(Project.objects.filter(Q(author_user_id = self.request.user.id)) )
-        print("2")
-        print(Project.objects.filter(Q(contributors = self.request.user.id)))
+        #print("1")
+        #print(Project.objects.filter(Q(author_user_id = self.request.user.id)) )
+        #print("2")
+        #print(Project.objects.filter(Q(contributors = self.request.user.id)))
 
-        print("3")
-        print(Project.objects.filter(
-            Q(author_user_id = self.request.user.id) | Q(contributors = self.request.user.id)
-        ))
+        #print("3")
+        #print(Project.objects.filter(
+        #    Q(author_user_id = self.request.user.id) | Q(contributors = self.request.user.id)
+        #))
 
         return projects_in_which_user_is_author_or_contributor
         
