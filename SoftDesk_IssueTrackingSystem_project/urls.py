@@ -54,9 +54,9 @@ projects_contributors_router.register('contributors', ContributorsViewset, basen
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('', authentication_app.views.LoginPageView.as_view(), name='login'),
-    path('logout/', authentication_app.views.logout_user, name='logout'),
-    path('signup/', authentication_app.views.signup_page, name='signup'),
+    #path('', authentication_app.views.LoginPageView.as_view(), name='login'),
+    #path('logout/', authentication_app.views.logout_user, name='logout'),
+    #path('signup/', authentication_app.views.signup_page, name='signup'),
 
 
     path('api-auth/', include('rest_framework.urls')),
@@ -70,6 +70,10 @@ urlpatterns = [
     path('api/', include(projects_issues_comments_router.urls)),
 
     path('api/', include(projects_contributors_router.urls)),
+
+    #https://dev.to/shivamrohilla/user-authentication-in-djangorestframework-using-simplejwt-login-signup-3kd8
+    path('api/signup/', authentication_app.views.signup, name='signup'),
+    #path('api/login/', authentication_app.views.login, name='login'),  # replaced by api/token/
 
 ]
 

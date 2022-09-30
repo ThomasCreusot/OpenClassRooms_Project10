@@ -122,3 +122,5 @@ class ContributorsViewset(ModelViewSet):
     #    contributors_queryset = Contributor.objects.filter(project_id=id_of_project_in_url) 
     #    contributors_user_queryset = User.objects.filter(id__in=contributors_queryset) # avec du recul: étange. il me semble que ca marchait, mais ne devrait il pas y avoir une étape supplémentaire ou on cherche un ide dans une liste... d'ids ^^
     #    return contributors_user_queryset
+
+

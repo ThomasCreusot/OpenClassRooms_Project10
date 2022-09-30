@@ -1,5 +1,3 @@
-
-from email.policy import default
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 
@@ -159,3 +157,4 @@ class ContributorCompleteSerializer(ModelSerializer):
         model = Contributor
         fields = ['id', 'user_id','project_id', 'role']
 """
+
