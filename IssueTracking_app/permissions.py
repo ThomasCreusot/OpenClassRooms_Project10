@@ -25,7 +25,7 @@ https://www.django-rest-framework.org/api-guide/permissions/ : if method is 'GET
 
 
 def give_permission_to_contributors_of_a_project(view, request, view_kwarg_project):
-    """Returns True if the authentified User is a collaborator of the given project"""
+    """Returns True if the authenticated User is a collaborator of the given project"""
     #view_kwarg_project : pk or project_pk, see router design
 
     id_of_project_in_url = view.kwargs[view_kwarg_project]
@@ -37,7 +37,7 @@ def give_permission_to_contributors_of_a_project(view, request, view_kwarg_proje
 
 
 def give_permission_to_author_of_a_project(view, request, view_kwarg_project):
-    """Returns True if the authentified User is the author of the given project"""
+    """Returns True if the authenticated User is the author of the given project"""
     #view_kwarg_project : pk or project_pk, see router design
 
     id_of_project_in_url = view.kwargs[view_kwarg_project]
@@ -47,7 +47,7 @@ def give_permission_to_author_of_a_project(view, request, view_kwarg_project):
 
 
 def give_permission_to_contributors_and_author_of_a_project(view, request, view_kwarg_project):
-    """Returns True if the authentified User is the author or a contributor of the given project"""
+    """Returns True if the authenticated User is the author or a contributor of the given project"""
 
     contributor = give_permission_to_contributors_of_a_project(view, request, view_kwarg_project)
     author = give_permission_to_author_of_a_project(view, request, view_kwarg_project)
@@ -57,7 +57,7 @@ def give_permission_to_contributors_and_author_of_a_project(view, request, view_
 
 
 def give_permission_to_author_of_an_issue(view, request, view_kwarg_issue):
-    """Returns True if the authentified User is the author of the given project"""
+    """Returns True if the authenticated User is the author of the given project"""
 
     id_of_issue_in_url = view.kwargs[view_kwarg_issue]
     issue_object = get_object_or_404(Issue, pk=id_of_issue_in_url)
@@ -66,7 +66,7 @@ def give_permission_to_author_of_an_issue(view, request, view_kwarg_issue):
 
 
 def give_permission_to_author_of_a_comment(view, request, view_kwarg_comment):
-    """Returns True if the authentified User is the author of the given project"""
+    """Returns True if the authenticated User is the author of the given project"""
 
     id_of_comment_in_url = view.kwargs[view_kwarg_comment]
     comment_object = get_object_or_404(Comment, pk=id_of_comment_in_url)
@@ -126,23 +126,23 @@ class ProjectsPermission(BasePermission):
 
 
 class IssuesPermission(BasePermission):
-    """Gives permission :
-    -ask to view all Issues of a project          : project contributors only ; GET in has_permission
-    -ask to create all Issues of a project        : project contributors only ; POST in has_permission
+    """Gives permission:
+    -ask to view all Issues of a project           : project contributors only ; GET in has_permission
+    -ask to create all Issues of a project         : project contributors only ; POST in has_permission
 
-    -ask to update all all Issues of a project    : PUT on http://127.0.0.1:8000/api/projects/23/issues : does not exist ; but same code as in has_object_permission, as :
+    -ask to update all all Issues of a project     : PUT on http://127.0.0.1:8000/api/projects/23/issues : does not exist ; but same code as in has_object_permission, as :
         "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
         (https://www.django-rest-framework.org/api-guide/permissions/)
         --> Issue author only
-    -ask to delete all all Issues of a project    : DELETE on http://127.0.0.1:8000/api/projects/23/issues : does not exist; but same code as in has_object_permission, as :
+    -ask to delete all all Issues of a project     : DELETE on http://127.0.0.1:8000/api/projects/23/issues : does not exist; but same code as in has_object_permission, as :
         "The instance-level has_object_permission method will only be called if the view-level has_permission checks have already passed."
         (https://www.django-rest-framework.org/api-guide/permissions/)
         --> Issue author only
 
-    -ask to view a given Issue of a given Project   : project contributors only ; GET in has_permission
-    -ask to create a given Issue of a given Project : "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
-    -ask to update a given Issue of a given Project : Issue author only ; PUT in has_object_permission
-    -ask to delete a given Issue of a given Project : Issue author only ; DELETE in has_object_permission
+    -ask to view a given Issue of a given Project  : project contributors only ; GET in has_object_permission
+    -ask to create a given Issue of a given Project: "Method \"POST\" not allowed." on http://127.0.0.1:8000/api/projects/22
+    -ask to update a given Issue of a given Project: Issue author only ; PUT in has_object_permission
+    -ask to delete a given Issue of a given Project: Issue author only ; DELETE in has_object_permission
     """
 
     message = 'You are not allowed to do this action, see permissions.py / IssuesPermission'
