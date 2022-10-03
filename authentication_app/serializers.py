@@ -2,7 +2,8 @@ from rest_framework import serializers
 from authentication_app.models import User
 
 
-#https://dev.to/shivamrohilla/user-authentication-in-djangorestframework-using-simplejwt-login-signup-3kd8
+# https://dev.to/shivamrohilla/user-authentication-in-djangorestframework-using-simplejwt-login-
+# signup-3kd8
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -15,7 +16,9 @@ class UserSignupSerializer(serializers.ModelSerializer):
         'password': {'required': True, 'allow_blank': False},        
     }    
 
-#https://dev.to/shivamrohilla/user-authentication-in-djangorestframework-using-simplejwt-login-signup-3kd8
+
+# https://dev.to/shivamrohilla/user-authentication-in-djangorestframework-using-simplejwt-login-
+# signup-3kd8
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

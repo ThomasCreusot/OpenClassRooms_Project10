@@ -1,10 +1,7 @@
-from django.db import models
-
 from django.contrib.auth.models import AbstractUser
 
-#Cours OC : Même si modèle  User  par défaut tout à fait convenable, : conseille de toujours
-# implémenter un modèle  User  personnalisé dans votre projet. Et ce, même s’il est identique au
-# modèle par défaut ! […]
+# OC classes: even if the User model by default is appropriate, we advice to # always implement a
+# personalizerd User model (even if identical to defaul model)
 class User(AbstractUser):
     """Reprensents an User"""
     # user_id = models.fields.IntegerField   # already in the AbstractUser model
